@@ -13,16 +13,8 @@ class Sentence(Base):
     def to_dict(self):
         return {
             "id": self.id,
+            "document_id": self.document_id,
             "title": self.title,
-            "description": self.description,
-            "image": self.image,
-            "publisher": self.publisher,
-            "publishTime": self.publish_time.isoformat(),
-            "sentences": [{
-                "articleId": sentence.article_id,
-                "id": sentence.id,
-                "text": sentence.text
-            } for sentence in self.sentences]
         }
 
 

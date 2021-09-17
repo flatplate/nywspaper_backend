@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Float, String, Integer, ForeignKey
+from sqlalchemy import Column, Float, String, Integer, ForeignKey, DateTime
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -11,6 +11,7 @@ class Cluster(Base):
     description = Column('description', String)
     image = Column('image', String)
     importance = Column('importance', Float)
+    published = Column('published', DateTime, nullable=True)
     articles = relationship("Article", lazy="subquery")
 
     def to_dict(self):
