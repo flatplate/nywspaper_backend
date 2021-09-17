@@ -7,6 +7,7 @@ from articles.module import ArticleModule
 from clusters.module import ClusterModule
 from core.config import get_config
 from load.dataloader import load_data
+from publisher import Base
 from sentences.module import SentenceModule
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
@@ -20,6 +21,7 @@ engine = create_engine(get_config()['DATABASE_URL'], echo=True)
 ClusterModule().start(engine, api)
 ArticleModule().start(engine, api)
 SentenceModule().start(engine, api)
+Base.metadata.create_all(engine)
 
 load_data()
 
