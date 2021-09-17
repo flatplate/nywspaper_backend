@@ -13,5 +13,4 @@ class SimilarSentences(Resource):
         document_id = request.args.get('document_id', type=int)
         sentences = self.service.get_similar_sentences(document_id, sentence_id)
 
-        print("SENTENCES", sentences)
         return sentences  # TODO json stuff

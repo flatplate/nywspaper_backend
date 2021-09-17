@@ -20,7 +20,6 @@ class Article(Base):
     publisher_ = relationship(Publisher, lazy='joined')
 
     def to_dict(self):
-        print("publisher", self.publisher, self.publisher_)
         return {
             "id": self.id,
             "title": self.title,

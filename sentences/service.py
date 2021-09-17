@@ -18,6 +18,7 @@ class SentenceService:
         with Session(self.engine) as session:
             return [{
                 "documentId": s2.document_id,
+                "id": s2.id,
                 "text": s2.text,
                 "similarity": sim.similarity,
                 "publisher": publisher.to_dict()

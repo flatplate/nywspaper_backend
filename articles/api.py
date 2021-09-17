@@ -10,11 +10,9 @@ class ArticleSummary(Resource):
 
     def get(self):
         article_ids = request.args.getlist('articles', type=int)
-        print(article_ids)
         if not article_ids:
             raise Exception()
         articles = self.service.get_article_summaries(article_ids)
-        print(articles)
         return articles  # TODO json stuff
 
 class Articles(Resource):
@@ -26,5 +24,4 @@ class Articles(Resource):
         if not article_id:
             raise Exception()  # TODO
         article = self.service.get_article(article_id)
-        print("article", article)
         return article  # TODO json stuff

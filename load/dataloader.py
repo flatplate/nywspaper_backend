@@ -1,6 +1,7 @@
 import logging
 
 import psycopg2
+from psycopg2.extras import execute_values
 
 # For local testing, automatically updates the database
 database_config_nywscrape = {
@@ -10,7 +11,7 @@ database_config_nywscrape = {
     "host": "localhost",
     "port": 5433
 }
-real_db_url = 'postgresql://postgres:123123123u@localhost:5432/postgres'
+real_db_url = 'postgresql://postgres:JLhKkxA70N6zg9uoMyge@168.119.224.47:5432/postgres'
 
 
 publishers = {
@@ -119,11 +120,11 @@ def load_data():
 
     article_insert_sql = """INSERT INTO staging.articles_article 
                             (id, url, title, description, authors, image, publisher, publish_time)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
-    cur_realdb.executemany(article_insert_sql, [article[:-1] for article in articles])
+                            VALUES %s"""
+    execute_values(cur_realdb, article_insert_sql, [article[:-1] for article in articles])
 
-    sentence_insert_sql = """INSERT INTO staging.articles_sentence (article_id, id, text) VALUES (%s, %s, %s)"""
-    cur_realdb.executemany(sentence_insert_sql, sentences)
+    sentence_insert_sql = """INSERT INTO staging.articles_sentence (article_id, id, text) VALUES %s"""
+    execute_values(cur_realdb, sentence_insert_sql, sentences)
 
     # Select representative articles of clusters
     added_clusters = set()
@@ -135,14 +136,14 @@ def load_data():
             cluster_tuples.append((cluster_id, article[2], article[3], article[5], article[7], 1.0))
 
     cluster_insert_sql = """INSERT INTO staging.clusters_cluster (id, title, description, image, published, importance)
-                            VALUES (%s, %s, %s, %s, %s, %s)"""
-    cur_realdb.executemany(cluster_insert_sql, cluster_tuples)
+                            VALUES %s"""
+    execute_values(cur_realdb, cluster_insert_sql, cluster_tuples)
 
-    cluster_article_insert_sql = """INSERT INTO staging.clusters_article (id, cluster_id) VALUES (%s, %s)"""
-    cur_realdb.executemany(cluster_article_insert_sql, [(article[0], article[-1]) for article in articles])
+    cluster_article_insert_sql = """INSERT INTO staging.clusters_article (id, cluster_id) VALUES %s"""
+    execute_values(cur_realdb, cluster_article_insert_sql, [(article[0], article[-1]) for article in articles])
 
-    sentence_insert_sql = """INSERT INTO staging.sentences_sentence (document_id, id, text) VALUES (%s, %s, %s)"""
-    cur_realdb.executemany(sentence_insert_sql, sentences)
+    sentence_insert_sql = """INSERT INTO staging.sentences_sentence (document_id, id, text) VALUES %s"""
+    execute_values(cur_realdb, sentence_insert_sql, sentences)
 
     similarity_insert_sql = """INSERT INTO staging.sentences_sentence_similarity (
                                    first_sentence_document_id, 
@@ -150,9 +151,8 @@ def load_data():
                                    second_sentence_document_id,
                                    second_sentence_sentence_id,
                                    similarity
-                               ) VALUES (%s, %s, %s, %s, %s)"""
-    print("Will insert similarities", similarities)
-    cur_realdb.executemany(similarity_insert_sql, similarities)
+                               ) VALUES %s"""
+    execute_values(cur_realdb, similarity_insert_sql, similarities)
 
     cur_realdb.execute("DROP SCHEMA PUBLIC CASCADE")
     cur_realdb.execute("ALTER SCHEMA staging RENAME TO public")
