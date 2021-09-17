@@ -18,10 +18,10 @@ CORS(app)
 
 engine = create_engine(get_config()['DATABASE_URL'], echo=True)
 
+Base.metadata.create_all(engine)
 ClusterModule().start(engine, api)
 ArticleModule().start(engine, api)
 SentenceModule().start(engine, api)
-Base.metadata.create_all(engine)
 
 load_data()
 
