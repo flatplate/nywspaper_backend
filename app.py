@@ -16,7 +16,7 @@ app = Flask(__name__)
 api = Api(app)
 CORS(app)
 
-engine = create_engine(get_config()['DATABASE_URL'], echo=True)
+engine = create_engine(get_config()['DATABASE_URL'])
 
 Base.metadata.create_all(engine)
 ClusterModule().start(engine, api)
