@@ -39,10 +39,12 @@ def load_data():
     database.
     """
     try:
+        print("Connecting to the nywscrape database")
         conn = psycopg2.connect(**database_config_nywscrape)
     except Exception as e:
         logging.error("Could not connect to nywscrape database.\n{}".format(str(e)))
         return
+    print("Connected to the nywscrape database")
     sql = """
         SELECT 
             cv.id, 
@@ -63,6 +65,7 @@ def load_data():
     cur = conn.cursor()
     cur.execute(sql)
     articles = cur.fetchall()
+    print("Got articles")
 
     sentence_sql = """
         SELECT 
@@ -77,7 +80,7 @@ def load_data():
     """
     cur.execute(sentence_sql)
     sentences = cur.fetchall()
-
+    print("Got sentences")
 
     similarity_sql = """
         SELECT 
@@ -95,7 +98,9 @@ def load_data():
     """
     cur.execute(similarity_sql)
     similarities = cur.fetchall()
+    print("Got similarities")
 
+    print("Creating staging schema")
     conn_realdb = psycopg2.connect(real_db_url)
     cur_realdb = conn_realdb.cursor()
     cur_realdb.execute("CREATE SCHEMA staging")
@@ -108,7 +113,7 @@ def load_data():
     cur_realdb.execute("CREATE TABLE staging.sentences_sentence (LIKE public.sentences_sentence)")
     cur_realdb.execute("CREATE TABLE staging.sentences_sentence_similarity "
                        "(LIKE public.sentences_sentence_similarity)")
-
+    print("Created staging schema")
     # Transform cluster ids to unique ones
     current_cluster_id = max([article[-1] for article in articles]) + 1
     articles = [list(article) for article in articles]
@@ -122,10 +127,11 @@ def load_data():
                             (id, url, title, description, authors, image, publisher, publish_time)
                             VALUES %s"""
     execute_values(cur_realdb, article_insert_sql, [article[:-1] for article in articles])
-
+    print("Inserted articles")
     sentence_insert_sql = """INSERT INTO staging.articles_sentence (article_id, id, text) VALUES %s"""
     execute_values(cur_realdb, sentence_insert_sql, sentences)
 
+    print("Inserted sentences")
     # Select representative articles of clusters
     added_clusters = set()
     cluster_tuples = []
@@ -138,12 +144,15 @@ def load_data():
     cluster_insert_sql = """INSERT INTO staging.clusters_cluster (id, title, description, image, published, importance)
                             VALUES %s"""
     execute_values(cur_realdb, cluster_insert_sql, cluster_tuples)
+    print("Inserted clusters")
 
     cluster_article_insert_sql = """INSERT INTO staging.clusters_article (id, cluster_id) VALUES %s"""
     execute_values(cur_realdb, cluster_article_insert_sql, [(article[0], article[-1]) for article in articles])
+    print("Inserted cluster articles")
 
     sentence_insert_sql = """INSERT INTO staging.sentences_sentence (document_id, id, text) VALUES %s"""
     execute_values(cur_realdb, sentence_insert_sql, sentences)
+    print("Inserted sentences")
 
     similarity_insert_sql = """INSERT INTO staging.sentences_sentence_similarity (
                                    first_sentence_document_id, 
@@ -153,10 +162,12 @@ def load_data():
                                    similarity
                                ) VALUES %s"""
     execute_values(cur_realdb, similarity_insert_sql, similarities)
+    print("Inserted similarities")
 
     cur_realdb.execute("DROP SCHEMA PUBLIC CASCADE")
     cur_realdb.execute("ALTER SCHEMA staging RENAME TO public")
     conn_realdb.commit()
+    print("Commited changes")
 
 def get_publisher_id(url):
     url_main_part = url.split("/")[2]

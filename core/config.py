@@ -1,7 +1,7 @@
 import os
 
 config = {
-    "DATABASE_URL": "postgresql://postgres:123123123u@localhost:5432/postgres"
+    "DATABASE_URL": "postgresql://postgres:JLhKkxA70N6zg9uoMyge@168.119.224.47:5432/postgres"
 }
 
 config_init = False
